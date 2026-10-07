@@ -2,7 +2,6 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <!-- Meta tag crucial para adaptar la pantalla a teléfonos móviles -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sala VIP - Kevin y Sofi</title>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -17,7 +16,7 @@
         #login-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-            z-index: 1000; display: flex; justify-content: center; align-items: center;
+            z-index: 10000; display: flex; justify-content: center; align-items: center;
         }
         .login-box {
             background: rgba(26, 26, 26, 0.9); padding: 30px; border-radius: 15px; 
@@ -30,7 +29,7 @@
         .login-box input:focus { border: 2px solid #27ae60; }
         
         header {
-            background: rgba(255, 255, 255, 0.05); padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05); padding: 10px 20px;
             display: flex; justify-content: space-between; align-items: center;
             border-bottom: 1px solid rgba(255,255,255,0.1); z-index: 100;
         }
@@ -43,9 +42,10 @@
         #main-container { display: flex; flex-grow: 1; overflow: hidden; position: relative; }
         #workspace { position: relative; flex-grow: 1; width: 100%; height: 100%; }
 
+        /* Panel Lateral (Chat y Encuestas) */
         #right-sidebar {
             width: 350px; background: #1a1a1a; border-left: 1px solid #333;
-            display: none; flex-direction: column; z-index: 90;
+            display: none; flex-direction: column; z-index: 9999;
         }
         
         .sidebar-tabs { display: flex; background: #2c3e50; }
@@ -59,7 +59,6 @@
         .tab-content { display: none; flex-direction: column; flex-grow: 1; padding: 15px; overflow-y: auto; }
         .tab-content.active { display: flex; }
 
-        /* Chat y Encuestas */
         #chat-messages { flex-grow: 1; overflow-y: auto; margin-bottom: 15px; padding-right: 5px; }
         .chat-msg { background: #34495e; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 14px; word-wrap: break-word; }
         .chat-input-container { display: flex; gap: 8px; }
@@ -71,7 +70,6 @@
         .poll-result { background: #34495e; padding: 15px; border-radius: 8px; margin-top: 10px; position: relative; }
         .delete-poll-btn { position: absolute; top: 10px; right: 10px; background: #e74c3c; color: white; border: none; border-radius: 3px; padding: 3px 8px; font-weight: bold; cursor: pointer; }
         .vote-record { font-size: 13px; color: #2ecc71; margin-top: 8px; padding-left: 5px; border-left: 2px solid #2ecc71; }
-        .poll-timer-display { color: #f1c40f; font-weight: bold; margin-bottom: 10px; display: block; font-size: 14px; }
         
         /* Videos para PC (Arrastrables) */
         .draggable-video {
@@ -85,11 +83,19 @@
         }
         video { display: block; width: 320px; height: auto; background: black; object-fit: cover; }
 
+        /* Controles con scroll horizontal para móviles */
         .controls {
-            background: rgba(0, 0, 0, 0.9); padding: 15px; display: flex; justify-content: center; gap: 10px; z-index: 100; flex-wrap: wrap;
+            background: rgba(0, 0, 0, 0.9); padding: 15px; display: flex; 
+            z-index: 100; align-items: center; gap: 10px;
+            overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch;
         }
+        .controls::-webkit-scrollbar { height: 6px; }
+        .controls::-webkit-scrollbar-thumb { background: #27ae60; border-radius: 10px; }
+        
         .controls button {
-            background: #27ae60; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px;
+            flex: 0 0 auto; 
+            background: #27ae60; color: white; border: none; padding: 12px 18px; 
+            border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px;
         }
         .controls button:hover:not(:disabled) { filter: brightness(1.1); }
         .controls button.danger { background: #e74c3c; }
@@ -102,24 +108,28 @@
             header { flex-direction: column; gap: 10px; padding: 10px; }
             #room-display { display: block; margin-bottom: 5px; }
             
-            /* El espacio de trabajo apila los videos y activa el scroll */
             #workspace {
-                display: flex; flex-direction: column; overflow-y: auto; padding: 10px; box-sizing: border-box; gap: 15px; align-items: center;
+                display: flex; flex-direction: column; overflow-y: auto; padding: 10px; gap: 15px; align-items: center;
             }
             
-            /* Los videos ya no se arrastran, se adaptan a la pantalla */
             .draggable-video {
-                position: relative !important; top: auto !important; left: auto !important; width: 100% !important; max-width: 400px; box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+                position: relative !important; top: auto !important; left: auto !important; width: 100% !important; max-width: 100%; box-shadow: 0 4px 8px rgba(0,0,0,0.4);
             }
-            video { width: 100% !important; height: auto; max-height: 40vh; }
+            video { width: 100% !important; height: auto; min-height: 200px; }
             
-            /* El panel lateral ocupa toda la pantalla por encima de los videos cuando se abre */
-            #right-sidebar { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 200; }
+            /* Ocultar botón de compartir pantalla en móvil */
+            #btn-share { display: none !important; }
+
+            /* Panel lateral a pantalla completa */
+            #right-sidebar { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 9999; background: #0f2027; }
             .mobile-only-btn { display: block; background: #e74c3c !important; color: white !important; }
-            
-            /* Los botones de abajo se ajustan al tamaño del celular */
-            .controls { padding: 10px; gap: 8px; }
-            .controls button { flex: 1 1 30%; font-size: 12px; padding: 10px 5px; text-align: center; }
+        }
+
+        /* ROTACIÓN DEL TELÉFONO (Horizontal) */
+        @media (max-width: 900px) and (orientation: landscape) {
+            #workspace { flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+            .draggable-video { width: 45% !important; max-width: 350px; }
+            video { min-height: 150px; }
         }
     </style>
 </head>
@@ -129,9 +139,9 @@
         <div class="login-box">
             <h2>Acceso a Sala VIP</h2>
             <input type="text" id="username-input" placeholder="Tu Nombre (Ej: Kevin)">
-            <input type="password" id="password-input" placeholder="Contrasena">
+            <input type="password" id="password-input" placeholder="Contraseña">
             <button onclick="verificarAcceso()" style="width: 100%; margin-top: 10px; padding: 12px;">Entrar a la Sala</button>
-            <p id="login-error" style="color: #e74c3c; display: none; font-weight: bold; margin-top: 15px;">Contrasena incorrecta.</p>
+            <p id="login-error" style="color: #e74c3c; display: none; font-weight: bold; margin-top: 15px;">Contraseña incorrecta.</p>
         </div>
     </div>
 
@@ -145,14 +155,13 @@
 
     <div id="main-container">
         <div id="workspace">
-            <!-- Tu cámara -->
             <div class="draggable-video" id="cam-local-container" style="top: 20px; left: 20px;">
-                <div class="drag-header" id="cam-local-containerheader">Mi Camara</div>
+                <div class="drag-header" id="cam-local-containerheader">Mi Cámara</div>
+                <!-- Local debe ser muted para no escuchar eco -->
                 <video id="localVideo" autoplay muted playsinline></video>
             </div>
         </div>
 
-        <!-- Panel Lateral (Chat / Encuestas) -->
         <div id="right-sidebar">
             <div class="sidebar-tabs">
                 <button id="btn-tab-chat" class="active" onclick="switchTab('chat')">Chat</button>
@@ -171,12 +180,12 @@
             <div id="tab-polls" class="tab-content">
                 <div class="poll-box" id="create-poll">
                     <input type="text" id="poll-q" placeholder="Pregunta...">
-                    <input type="number" id="poll-timer-input" placeholder="Segundos (vacio = sin limite)" min="5">
+                    <input type="number" id="poll-timer-input" placeholder="Segundos (vacío = sin límite)" min="5">
                     <div id="poll-options-container">
-                        <input type="text" class="poll-opt" placeholder="Opcion 1">
-                        <input type="text" class="poll-opt" placeholder="Opcion 2">
+                        <input type="text" class="poll-opt" placeholder="Opción 1">
+                        <input type="text" class="poll-opt" placeholder="Opción 2">
                     </div>
-                    <button class="btn-link" onclick="agregarOpcion()" style="width: 100%; margin-bottom: 10px; background: #34495e;">Agregar Opcion</button>
+                    <button class="btn-link" onclick="agregarOpcion()" style="width: 100%; margin-bottom: 10px; background: #34495e;">Agregar Opción</button>
                     <button class="primary" style="width: 100%; padding: 10px; border:none; border-radius:5px; color:white; font-weight:bold; cursor:pointer;" onclick="crearEncuestaGlobal()">Iniciar Encuesta</button>
                 </div>
                 <div id="active-polls"></div>
@@ -187,14 +196,14 @@
     <!-- Controles Inferiores -->
     <div class="controls">
         <button id="btn-audio" onclick="toggleAudio()">Silenciar</button>
-        <button id="btn-video" onclick="toggleVideo()">Apagar Camara</button>
+        <button id="btn-video" onclick="toggleVideo()">Apagar Cámara</button>
         <button id="btn-share" onclick="compartirPantalla()">Compartir Pantalla</button>
         <button class="primary" onclick="togglePanelLateral()">Abrir Chat/Encuestas</button>
         <button class="danger" onclick="location.reload()">Salir</button>
     </div>
 
     <script>
-        // 1. TUS CLAVES DE FIREBASE (YA INCLUIDAS)
+        // CONFIGURACIÓN FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyBMny1U0WtotfSJwLryDw-dtxppf9IdlgE",
             authDomain: "plataforma-vip-e7452.firebaseapp.com",
@@ -224,6 +233,13 @@
             navigator.clipboard.writeText(window.location.href).then(() => alert("Enlace copiado. \nClave: felizdiaks"));
         }
 
+        // HACK PARA MÓVILES: Forzar reproducción de video/audio al tocar la pantalla
+        document.body.addEventListener('click', () => {
+            document.querySelectorAll('video').forEach(v => {
+                if (v.paused) v.play().catch(e => console.log("Aún cargando video..."));
+            });
+        }, { once: false });
+
         async function verificarAcceso() {
             const pwd = document.getElementById('password-input').value;
             const user = document.getElementById('username-input').value.trim();
@@ -233,20 +249,22 @@
                 document.getElementById('cam-local-containerheader').innerText = currentUser;
                 
                 try {
+                    // Pedir permisos de cámara y micrófono
                     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                    document.getElementById('localVideo').srcObject = localStream;
+                    const localVideo = document.getElementById('localVideo');
+                    localVideo.srcObject = localStream;
+                    localVideo.play().catch(e => console.log(e));
+                    
                     conectarASalaFirebase(); 
                 } catch (e) {
-                    alert("Por favor, permite el uso de la camara y microfono.");
+                    alert("Por favor, permite el uso de la cámara y micrófono.");
                 }
             } else {
                 document.getElementById('login-error').style.display = 'block';
             }
         }
 
-        // ==========================================
-        // 2. CHAT Y ENCUESTAS (Sin cambios, funcionan perfecto)
-        // ==========================================
+        /* --- CHAT Y ENCUESTAS --- */
         const chatRef = db.ref(`salas/${roomID}/chat`);
         function enviarMensaje() {
             const msgInput = document.getElementById('chat-input');
@@ -255,7 +273,6 @@
             chatRef.push({ user: currentUser, text: msg });
             msgInput.value = '';
         }
-
         chatRef.on('child_added', snapshot => {
             const data = snapshot.val();
             const msgArea = document.getElementById('chat-messages');
@@ -268,10 +285,10 @@
         let activeTimers = {};
 
         function agregarOpcion() {
-            if (totalOpciones >= 7) return alert("Limite alcanzado.");
+            if (totalOpciones >= 7) return alert("Límite alcanzado.");
             totalOpciones++;
             const input = document.createElement('input');
-            input.type = 'text'; input.className = 'poll-opt'; input.placeholder = 'Opcion ' + totalOpciones;
+            input.type = 'text'; input.className = 'poll-opt'; input.placeholder = 'Opción ' + totalOpciones;
             document.getElementById('poll-options-container').appendChild(input);
         }
 
@@ -287,7 +304,7 @@
             const pollId = 'poll-' + Date.now();
             pollsRef.child(pollId).set({ pregunta: q, opciones: opciones, tiempo: isNaN(tiempoInput) ? null : tiempoInput, creador: currentUser });
             document.getElementById('poll-q').value = ''; document.getElementById('poll-timer-input').value = '';
-            document.getElementById('poll-options-container').innerHTML = `<input type="text" class="poll-opt" placeholder="Opcion 1"><input type="text" class="poll-opt" placeholder="Opcion 2">`;
+            document.getElementById('poll-options-container').innerHTML = `<input type="text" class="poll-opt" placeholder="Opción 1"><input type="text" class="poll-opt" placeholder="Opción 2">`;
             totalOpciones = 2;
         }
 
@@ -295,7 +312,7 @@
         db.ref(`salas/${roomID}/votos`).on('child_added', snapshot => {
             const voto = snapshot.val();
             const contenedor = document.getElementById(`votos-${voto.pollId}`);
-            if (contenedor) contenedor.innerHTML += `<div class="vote-record"><strong>${voto.user}</strong> voto por: ${voto.opcion}</div>`;
+            if (contenedor) contenedor.innerHTML += `<div class="vote-record"><strong>${voto.user}</strong> votó por: ${voto.opcion}</div>`;
         });
         pollsRef.on('child_removed', snapshot => document.getElementById(snapshot.key)?.remove());
 
@@ -334,21 +351,15 @@
             db.ref(`salas/${roomID}/votos`).push({ pollId: pollId, user: currentUser, opcion: opcionElegida });
         }
 
-        // ==========================================
-        // 3. MOTOR DE VIDEO WEBRTC (CORREGIDO PARA PANTALLA NEGRA)
-        // ==========================================
-        // Se añaden múltiples servidores STUN públicos de Google para garantizar la conexión
+        /* --- MOTOR DE VIDEO WEBRTC --- */
         const configWebRTC = { 
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'stun:stun2.l.google.com:19302' }
+                { urls: 'stun:stun1.l.google.com:19302' }
             ] 
         };
         const signalingRef = db.ref(`salas/${roomID}/signals`);
         const usersRef = db.ref(`salas/${roomID}/users`);
-        
-        // Cola para guardar las redes (ICE) que llegan antes de tiempo
         let iceCandidatesQueue = {};
 
         function conectarASalaFirebase() {
@@ -358,12 +369,11 @@
             usersRef.on('child_added', snapshot => {
                 const remotePeerId = snapshot.key;
                 const remoteData = snapshot.val();
-                if (remotePeerId !== myPeerId && remoteData.timestamp >= Date.now() - 10000) {
+                if (remotePeerId !== myPeerId && remoteData.timestamp >= Date.now() - 15000) {
                     crearConexionWebRTC(remotePeerId, remoteData.nombre, true);
                 }
             });
 
-            // Lógica asíncrona corregida para que el video no quede en negro
             signalingRef.child(myPeerId).on('child_added', async snapshot => {
                 const signal = snapshot.val();
                 if (!peers[signal.from]) {
@@ -378,7 +388,6 @@
                         await pc.setLocalDescription(answer);
                         enviarSignal(signal.from, { type: 'answer', sdp: answer });
                         
-                        // Procesar cola de redes retrasadas
                         if (iceCandidatesQueue[signal.from]) {
                             iceCandidatesQueue[signal.from].forEach(c => pc.addIceCandidate(c));
                             delete iceCandidatesQueue[signal.from];
@@ -399,7 +408,7 @@
                         }
                     }
                 } catch (e) {
-                    console.error("Error en WebRTC:", e);
+                    console.error("Error WebRTC:", e);
                 }
                 snapshot.ref.remove(); 
             });
@@ -423,8 +432,44 @@
                 if (e.candidate) enviarSignal(remotePeerId, { type: 'candidate', candidate: e.candidate });
             };
 
+            // CREACIÓN DINÁMICA DE VIDEO PARA ASEGURAR QUE SE VEA EN MÓVILES
             pc.ontrack = e => {
-                crearVentanaVideo(remotePeerId, remoteNombre, e.streams[0]);
+                let div = document.getElementById(`cam-${remotePeerId}-container`);
+                if (!div) {
+                    div = document.createElement('div');
+                    div.className = 'draggable-video';
+                    div.id = `cam-${remotePeerId}-container`;
+                    div.style.top = (Math.random() * 50 + 50) + 'px';
+                    div.style.left = (Math.random() * 50 + 50) + 'px';
+                    
+                    const header = document.createElement('div');
+                    header.className = 'drag-header';
+                    header.id = `${div.id}header`;
+                    header.innerText = remoteNombre;
+                    
+                    const video = document.createElement('video');
+                    video.autoplay = true;
+                    video.playsInline = true; 
+                    // No debe estar silenciado para poder escuchar a los demás
+                    
+                    div.appendChild(header);
+                    div.appendChild(video);
+                    document.getElementById('workspace').appendChild(div);
+                    
+                    if(window.innerWidth > 768) hacerArrastrable(div);
+                }
+                
+                const video = div.querySelector('video');
+                
+                if (e.streams && e.streams[0]) {
+                    video.srcObject = e.streams[0];
+                } else {
+                    if (!video.srcObject) video.srcObject = new MediaStream();
+                    video.srcObject.addTrack(e.track);
+                }
+                
+                // Intentar reproducir automáticamente
+                video.play().catch(err => console.log("Se requiere toque en la pantalla para iniciar audio/video.", err));
             };
 
             if (esLlamador) {
@@ -441,38 +486,14 @@
             signalingRef.child(toPeerId).push(data);
         }
 
-        function crearVentanaVideo(id, nombre, stream) {
-            if (document.getElementById(`cam-${id}-container`)) return; 
-            
-            const div = document.createElement('div');
-            div.className = 'draggable-video';
-            div.id = `cam-${id}-container`;
-            div.style.top = (Math.random() * 100 + 50) + 'px';
-            div.style.left = (Math.random() * 200 + 350) + 'px';
-            
-            div.innerHTML = `
-                <div class="drag-header" id="${div.id}header">${nombre}</div>
-                <video autoplay playsinline></video>
-            `;
-            document.getElementById('workspace').appendChild(div);
-            div.querySelector('video').srcObject = stream;
-            
-            // Solo activar el arrastre si estamos en computadora
-            if(window.innerWidth > 768) {
-                hacerArrastrable(div);
-            }
-        }
-
-        // ==========================================
-        // 4. CONTROLES DE INTERFAZ Y COMPARTIR PANTALLA
-        // ==========================================
+        /* --- CONTROLES UI --- */
         function toggleAudio() { 
             const track = localStream.getAudioTracks()[0]; track.enabled = !track.enabled;
             document.getElementById('btn-audio').innerText = track.enabled ? "Silenciar" : "Activar Audio";
         }
         function toggleVideo() { 
             const track = localStream.getVideoTracks()[0]; track.enabled = !track.enabled;
-            document.getElementById('btn-video').innerText = track.enabled ? "Apagar Camara" : "Encender Camara";
+            document.getElementById('btn-video').innerText = track.enabled ? "Apagar Cámara" : "Encender Cámara";
         }
         function togglePanelLateral() {
             const panel = document.getElementById('right-sidebar');
@@ -485,7 +506,6 @@
             document.getElementById(`btn-tab-${tab}`).classList.add('active');
         }
 
-        // Lógica corregida para enviar la pantalla al otro dispositivo correctamente
         async function compartirPantalla() {
             try {
                 const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
@@ -497,7 +517,6 @@
                     if(sender) sender.replaceTrack(screenTrack);
                 });
 
-                // Cuando dejas de compartir desde el botón nativo del navegador, vuelve a tu cámara
                 screenTrack.onended = () => {
                     const camTrack = localStream.getVideoTracks()[0];
                     document.getElementById('localVideo').srcObject = localStream;
@@ -516,7 +535,6 @@
             let p1 = 0, p2 = 0, p3 = 0, p4 = 0;
             const header = document.getElementById(el.id + "header");
             header.onmousedown = function(e) {
-                // Prevenir arrastre en pantallas de celular
                 if(window.innerWidth <= 768) return; 
                 e.preventDefault(); p3 = e.clientX; p4 = e.clientY;
                 document.onmouseup = function() { document.onmouseup = null; document.onmousemove = null; };
