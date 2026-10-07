@@ -76,24 +76,27 @@
         .delete-poll-btn { position: absolute; top: 10px; right: 10px; background: #e74c3c; color: white; border: none; border-radius: 3px; padding: 3px 8px; font-weight: bold; cursor: pointer; }
         .vote-record { font-size: 13px; color: #2ecc71; margin-top: 8px; padding-left: 5px; border-left: 2px solid #2ecc71; }
         
-        /* CONTENEDOR DE PANTALLA COMPARTIDA A LA DERECHA */
+        /* CONTENEDOR DE PANTALLA COMPARTIDA (AHORA ARRASTRABLE Y REDIMENSIONABLE) */
         #presentation-container {
             position: absolute;
             top: 20px;
-            right: 20px;
-            width: calc(100% - 330px); /* Deja 330px libres a la izquierda para las cámaras */
-            height: calc(100% - 40px);
+            left: 320px; /* Deja espacio a la izquierda para las cámaras */
+            width: 60vw;
+            height: 70vh;
+            min-width: 300px;
+            min-height: 200px;
             background: #000;
             border-radius: 10px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.8);
-            display: none; /* Oculto por defecto */
+            display: none; 
             flex-direction: column;
-            z-index: 5;
+            z-index: 50;
             border: 2px solid #3498db;
             overflow: hidden;
+            resize: both; /* Permite estirar la esquina inferior derecha */
         }
         .presentation-header {
-            background: #2980b9; color: white; padding: 10px; font-weight: bold; text-align: center; flex-shrink: 0;
+            background: #2980b9; color: white; padding: 10px; font-weight: bold; text-align: center; flex-shrink: 0; cursor: grab;
         }
 
         /* VIDEOS ARRASTRABLES Y REDIMENSIONABLES */
@@ -111,6 +114,11 @@
             padding: 10px; cursor: grab; background: #2c3e50; color: white;
             font-weight: bold; text-align: center; user-select: none; font-size: 14px; flex-shrink: 0;
         }
+        
+        .pin-btn {
+            background: none; border: none; cursor: pointer; float: right; font-size: 16px; margin-top: -2px; transition: transform 0.2s;
+        }
+        .pin-btn:hover { transform: scale(1.2); }
 
         video { display: block; width: 100%; height: 100%; object-fit: contain; background: #000; flex-grow: 1; }
         #cam-local-container { width: 280px; height: 210px; }
@@ -139,7 +147,7 @@
                 resize: none !important; 
             }
             #presentation-container {
-                position: relative !important; top: auto !important; right: auto !important; width: 100% !important; height: 300px !important; order: -2;
+                position: relative !important; top: auto !important; left: auto !important; width: 100% !important; height: 300px !important; order: -2; resize: none !important;
             }
             video { min-height: 200px; }
             #btn-share { display: none !important; }
@@ -170,9 +178,9 @@
 
     <div id="main-container">
         <div id="workspace">
-            <!-- Contenedor Fijo a la Derecha para la Pantalla Compartida -->
+            <!-- Pantalla Compartida -->
             <div id="presentation-container">
-                <div class="presentation-header" id="presentation-header">Pantalla Compartida</div>
+                <div class="presentation-header drag-header" id="presentation-containerheader">Pantalla Compartida</div>
                 <video id="presentation-video" autoplay playsinline muted></video>
             </div>
 
@@ -183,7 +191,6 @@
             </div>
         </div>
 
-        <!-- Panel Lateral (Chat y Encuestas) -->
         <div id="right-sidebar">
             <div class="sidebar-tabs">
                 <button id="btn-tab-chat" class="active" onclick="switchTab('chat')">Chat</button>
@@ -259,7 +266,7 @@
             if (pwd === 'felizdiaks') {
                 currentUser = user !== "" ? user : "Invitado";
                 document.getElementById('login-overlay').style.display = 'none';
-                document.getElementById('cam-local-containerheader').innerText = currentUser;
+                document.getElementById('cam-local-containerheader').innerHTML = `${currentUser} <button class="pin-btn" onclick="seleccionarPrincipal('cam-local-container')" title="Fijar Cámara">📌</button>`;
                 
                 try {
                     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -274,31 +281,46 @@
             }
         }
 
-        /* --- AUTO-ACOMODAR CÁMARAS A LA IZQUIERDA --- */
         function acomodarCamarasALaIzquierda() {
-            if(window.innerWidth <= 768) return; // No hacer esto en celulares
+            if(window.innerWidth <= 768) return; 
             let topPos = 20;
             const leftPos = 20;
             
             document.querySelectorAll('.draggable-video').forEach(el => {
                 if(el.style.display !== 'none') {
-                    // Restauramos tamaños normales para que quepan
                     el.style.width = '280px';
                     el.style.height = '210px';
-                    // Las formamos a la izquierda
                     el.style.top = topPos + 'px';
                     el.style.left = leftPos + 'px';
-                    topPos += 230; // Espacio para el siguiente video abajo
+                    topPos += 230; 
                 }
             });
         }
 
-        /* --- ATAJO DE TECLADO (X TRES VECES) --- */
+        function seleccionarPrincipal(containerId) {
+            const container = document.getElementById(containerId);
+            const isMain = container.classList.contains('main-video');
+            
+            document.querySelectorAll('.draggable-video').forEach(el => {
+                el.classList.remove('main-video');
+            });
+
+            if (!isMain) {
+                container.classList.add('main-video');
+                if(window.innerWidth > 768) { 
+                    container.style.top = '10vh';
+                    container.style.left = '10vw';
+                }
+            } else { 
+                container.style.width = '280px';
+                container.style.height = '210px';
+            }
+        }
+
         let xKeyCount = 0;
         let xKeyTimer;
         document.addEventListener('keydown', (e) => {
             if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea') return;
-
             if (e.key.toLowerCase() === 'x') {
                 xKeyCount++;
                 clearTimeout(xKeyTimer);
@@ -316,7 +338,6 @@
             }
         });
 
-        /* --- CHAT Y ENCUESTAS --- */
         const chatRef = db.ref(`salas/${roomID}/chat`);
         function enviarMensaje() {
             const msgInput = document.getElementById('chat-input');
@@ -403,7 +424,6 @@
             db.ref(`salas/${roomID}/votos`).push({ pollId: pollId, user: currentUser, opcion: opcionElegida });
         }
 
-        /* --- MOTOR WEBRTC --- */
         const configWebRTC = { 
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' },
@@ -488,7 +508,6 @@
                     div.className = 'draggable-video';
                     div.id = `cam-${remotePeerId}-container`;
                     
-                    // Si alguien ya está compartiendo pantalla, mandamos este video a la izquierda
                     if(document.getElementById('presentation-container').style.display === 'flex' && window.innerWidth > 768) {
                         div.style.top = (document.querySelectorAll('.draggable-video').length * 230) + 'px';
                         div.style.left = '20px';
@@ -500,7 +519,10 @@
                     div.style.height = '210px';
                     
                     div.innerHTML = `
-                        <div class="drag-header" id="${div.id}header">${remoteNombre}</div>
+                        <div class="drag-header" id="${div.id}header">
+                            ${remoteNombre}
+                            <button class="pin-btn" onclick="seleccionarPrincipal('${div.id}')" title="Fijar Cámara">📌</button>
+                        </div>
                         <video autoplay playsinline></video>
                     `;
                     document.getElementById('workspace').appendChild(div);
@@ -535,16 +557,14 @@
             signalingRef.child(toPeerId).push(data);
         }
 
-        /* --- ESCUCHAR SI ALGUIEN MÁS COMPARTE PANTALLA --- */
         db.ref(`salas/${roomID}/screenShare`).on('value', snap => {
             const sharerId = snap.val();
             const presentationContainer = document.getElementById('presentation-container');
             const presentationVideo = document.getElementById('presentation-video');
-            const header = document.getElementById('presentation-header');
+            const header = document.getElementById('presentation-containerheader'); // Actualizado para reflejar el ID arrastrable
 
             if (sharerId) {
                 if (sharerId !== myPeerId) {
-                    // Esperar 1 segundo a que el WebRTC reemplace el track
                     setTimeout(() => {
                         const sharerVideoEl = document.querySelector(`#cam-${sharerId}-container video`);
                         if (sharerVideoEl) {
@@ -552,7 +572,7 @@
                             header.innerText = `Pantalla compartida de ${peers[sharerId]?.nombre || 'Invitado'}`;
                             presentationContainer.style.display = 'flex';
                             acomodarCamarasALaIzquierda();
-                            document.getElementById(`cam-${sharerId}-container`).style.display = 'none'; // Ocultar el cuadrito del que comparte
+                            document.getElementById(`cam-${sharerId}-container`).style.display = 'none'; 
                         }
                     }, 1000);
                 }
@@ -561,12 +581,10 @@
                     presentationContainer.style.display = 'none';
                     presentationVideo.srcObject = null;
                 }
-                // Mostrar a todos de nuevo
                 document.querySelectorAll('.draggable-video').forEach(el => el.style.display = 'flex');
             }
         });
 
-        /* --- CONTROLES GENERALES --- */
         function toggleAudio() { 
             const track = localStream.getAudioTracks()[0]; track.enabled = !track.enabled;
             document.getElementById('btn-audio').innerText = track.enabled ? "Silenciar" : "Activar Audio";
@@ -586,12 +604,10 @@
             document.getElementById(`btn-tab-${tab}`).classList.add('active');
         }
 
-        /* --- LÓGICA COMPARTIR/DEJAR DE COMPARTIR PANTALLA --- */
         let isSharingScreen = false;
 
         async function compartirPantalla() {
             if(window.innerWidth <= 768) { alert("Compartir pantalla no está disponible en dispositivos móviles."); return; }
-            
             const btn = document.getElementById('btn-share');
 
             if (!isSharingScreen) {
@@ -599,19 +615,16 @@
                     const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
                     const screenTrack = screenStream.getVideoTracks()[0];
                     
-                    // Visual Local: Poner la pantalla en el contenedor gigante derecho
                     document.getElementById('presentation-video').srcObject = screenStream;
-                    document.getElementById('presentation-header').innerText = `Tú estás compartiendo pantalla`;
+                    document.getElementById('presentation-containerheader').innerText = `Tú estás compartiendo pantalla`;
                     document.getElementById('presentation-container').style.display = 'flex';
                     acomodarCamarasALaIzquierda();
                     
-                    // Mandar la pantalla por la red
                     Object.values(peers).forEach(peerObj => {
                         const sender = peerObj.pc.getSenders().find(s => s.track.kind === 'video');
                         if(sender) sender.replaceTrack(screenTrack);
                     });
 
-                    // Avisar a Firebase
                     db.ref(`salas/${roomID}/screenShare`).set(myPeerId);
 
                     isSharingScreen = true;
@@ -627,8 +640,6 @@
 
         function detenerPantalla() {
             const btn = document.getElementById('btn-share');
-            
-            // Detener pistas de la pantalla
             const presentVideo = document.getElementById('presentation-video');
             if (presentVideo.srcObject) {
                 presentVideo.srcObject.getTracks().forEach(t => t.stop());
@@ -636,14 +647,12 @@
             }
             document.getElementById('presentation-container').style.display = 'none';
 
-            // Restaurar cámara a los demás
             const camTrack = localStream.getVideoTracks()[0];
             Object.values(peers).forEach(peerObj => {
                 const sender = peerObj.pc.getSenders().find(s => s.track.kind === 'video');
                 if(sender) sender.replaceTrack(camTrack);
             });
 
-            // Avisar a Firebase
             db.ref(`salas/${roomID}/screenShare`).remove();
 
             isSharingScreen = false;
@@ -651,12 +660,21 @@
             btn.classList.remove('danger');
         }
 
+        hacerArrastrable(document.getElementById("cam-local-container"));
+        hacerArrastrable(document.getElementById("presentation-container"));
+
         function hacerArrastrable(el) {
             let p1 = 0, p2 = 0, p3 = 0, p4 = 0;
             const header = document.getElementById(el.id + "header");
             if(!header) return;
             header.onmousedown = function(e) {
                 if(window.innerWidth <= 768) return; 
+                if(e.target.classList.contains('pin-btn')) return;
+                
+                // Traer al frente el contenedor seleccionado
+                document.querySelectorAll('.draggable-video, #presentation-container').forEach(v => v.style.zIndex = '1');
+                el.style.zIndex = '100';
+
                 e.preventDefault(); p3 = e.clientX; p4 = e.clientY;
                 document.onmouseup = function() { document.onmouseup = null; document.onmousemove = null; };
                 document.onmousemove = function(e) {
